@@ -25,11 +25,12 @@ app.secret_key = 'madereria_san_jose_2025_secret_key'
 app.permanent_session_lifetime = timedelta(minutes=30)
 
 # ===================== CONFIGURACIÓN MySQL ======================
-app.config['MYSQL_HOST'] = 'localhost'          # <--- corregido
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = ''               # pon tu contraseña si tienes
-app.config['MYSQL_DB'] = 'madereria_almacen'
-app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
+app.config['MYSQL_HOST'] = os.getenv('MYSQLHOST')
+app.config['MYSQL_USER'] = os.getenv('MYSQLUSER')
+app.config['MYSQL_PASSWORD'] = os.getenv('MYSQLPASSWORD')
+app.config['MYSQL_DB'] = os.getenv('MYSQLDATABASE')
+app.config['MYSQL_PORT'] = int(os.getenv('MYSQLPORT', 3306))
+
 
 mysql = MySQL(app)
 
