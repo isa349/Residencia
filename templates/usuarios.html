@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Usuarios - Maderería San José{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-forest"><i class="bi bi-people-fill me-2"></i>Gestión de Usuarios</h2>
+        <button class="btn btn-forest" data-bs-toggle="modal" data-bs-target="#modalNuevoUsuario">
+            <i class="bi bi-plus-circle me-2"></i>Nuevo Usuario
+        </button>
+    </div>
+
+    <!-- Tabla de Usuarios -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                            <th>Fecha Registro</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for usuario in usuarios %}
+                        <tr>
+                            <td>{{ usuario.id }}</td>
+                            <td><strong>{{ usuario.nombre }}</strong></td>
+                            <td>{{ usuario.email }}</td>
+                            <td>
+                                {% if usuario.rol == 'administrador' %}
+                                <span class="badge bg-primary">Administrador</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Empleado</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if usuario.activo %}
+                                <span class="badge bg-success">Activo</span>
+                                {% else %}
+                                <span class="badge bg-danger">Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ usuario.created_at.strftime('%d/%m/%Y') }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" 
+                                        onclick="editarUsuario({{ usuario.id }}, '{{ usuario.nombre }}', '{{ usuario.email }}', '{{ usuario.rol }}')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <a href="{{ url_for('toggle_usuario', id=usuario.id) }}" 
+                                   class="btn btn-sm btn-outline-warning">
+                                    <i class="bi bi-toggle-on"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nuevo Usuario -->
+<div class="modal fade" id="modalNuevoUsuario" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-forest text-white">
+                <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Nuevo Usuario</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('crear_usuario') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre Completo *</label>
+                        <input type="text" class="form-control" id="nombre" name="nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email *</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Contraseña *</label>
+                        <input type="password" class="form-control" id="password" name="password" required minlength="6">
+                    </div>
+                    <div class="mb-3">
+                        <label for="rol" class="form-label">Rol *</label>
+                        <select class="form-select" id="rol" name="rol" required>
+                            <option value="empleado">Empleado</option>
+                            <option value="administrador">Administrador</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-forest">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Usuario -->
+<div class="modal fade" id="modalEditarUsuario" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-forest text-white">
+                <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Editar Usuario</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" id="formEditarUsuario">
+                <div class="modal-body">
+                    <input type="hidden" id="edit_usuario_id" name="usuario_id">
+                    <div class="mb-3">
+                        <label for="edit_nombre" class="form-label">Nombre Completo *</label>
+                        <input type="text" class="form-control" id="edit_nombre" name="nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_email" class="form-label">Email *</label>
+                        <input type="email" class="form-control" id="edit_email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_password" class="form-label">Nueva Contraseña</label>
+                        <input type="password" class="form-control" id="edit_password" name="password" minlength="6">
+                        <small class="form-text text-muted">Dejar en blanco para mantener la contraseña actual</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_rol" class="form-label">Rol *</label>
+                        <select class="form-select" id="edit_rol" name="rol" required>
+                            <option value="empleado">Empleado</option>
+                            <option value="administrador">Administrador</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-forest">Actualizar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function editarUsuario(id, nombre, email, rol) {
+    document.getElementById('edit_usuario_id').value = id;
+    document.getElementById('edit_nombre').value = nombre;
+    document.getElementById('edit_email').value = email;
+    document.getElementById('edit_rol').value = rol;
+    document.getElementById('formEditarUsuario').action = `/usuarios/editar/${id}`;
+    
+    const modal = new bootstrap.Modal(document.getElementById('modalEditarUsuario'));
+    modal.show();
+}
+</script>
+{% endblock %}

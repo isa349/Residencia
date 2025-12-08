@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h3 mb-0">
+                <i class="bi bi-speedometer2 text-forest"></i> Inicio
+            </h1>
+            <p class="text-muted">Resumen general del sistema</p>
+        </div>
+    </div>
+
+    <!-- Tarjetas de estadísticas -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Total Productos</h6>
+                            <h2 class="mb-0 fw-bold">{{ total_productos }}</h2>
+                        </div>
+                        <div class="p-3 rounded" style="background-color:rgba(2, 124, 2, 0.093);">
+                            <i class="bi bi-box-seam text-green" style="font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Stock Bajo</h6>
+                            <h2 class="mb-0 fw-bold text-warning">{{ productos_stock_bajo }}</h2>
+                        </div>
+                        <div class="bg-warning bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-exclamation-triangle text-warning" style="font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Movimientos Hoy</h6>
+                            <h2 class="mb-0 fw-bold text-info">{{ movimientos_hoy }}</h2>
+                        </div>
+                        <div class="bg-info bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-arrow-left-right text-info" style="font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- Productos con stock bajo -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0">
+                        <i class="bi bi-exclamation-triangle text-warning"></i>
+                        Productos con Stock Bajo
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if productos_bajo_stock %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Producto</th>
+                                    <th>Stock</th>
+                                    <th>Mínimo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for producto in productos_bajo_stock %}
+                                <tr>
+                                    <td><code>{{ producto.codigo }}</code></td>
+                                    <td>{{ producto.nombre }}</td>
+                                    <td>
+                                        <span class="badge bg-warning">{{ producto.stock_actual }}</span>
+                                    </td>
+                                    <td>{{ producto.stock_minimo }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-check-circle" style="font-size: 3rem;"></i>
+                        <p class="mt-2">Todos los productos tienen stock suficiente</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Últimos movimientos -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-clock-history text-forest"></i>
+                        Últimos Movimientos
+                    </h5>
+                    <!-- Calendario -->
+                    <input type="text" id="fechaFiltro" class="form-control form-control-sm w-auto" placeholder="Seleccionar fecha">
+                </div>
+
+                <div class="card-body">
+                    {% if ultimos_movimientos %}
+                    <div id="tablaMovimientos" class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Tipo</th>
+                                    <th>Producto</th>
+                                    <th>Cantidad</th>
+                                    <th>Usuario</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for mov in ultimos_movimientos %}
+                                <tr data-fecha="{{ mov.fecha.strftime('%Y-%m-%d') }}">
+                                    <td><small>{{ mov.fecha.strftime('%d/%m/%Y') if mov.fecha else '' }}</small></td>
+                                    <td>
+                                        {% if mov.tipo == 'entrada' %}
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-arrow-down"></i> Entrada
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-danger">
+                                            <i class="bi bi-arrow-up"></i> Salida
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ mov.producto_nombre }}</td>
+                                    <td>{{ mov.cantidad }}</td>
+                                    <td><small>{{ mov.usuario_nombre }}</small></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                        <p class="mt-2">No hay movimientos registrados</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Flatpickr -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<!-- JS externo -->
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

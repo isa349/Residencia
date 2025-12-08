@@ -1,0 +1,201 @@
+:root {
+  --forest-green: #325438;        /* Principal */
+  --forest-green-dark: #56A662;   /* Hover / acentos */
+  --forest-green-light: #7EBF95;  /* Fondos suaves / gradientes */
+
+  --neutral-dark: #000000;        /* Texto fuerte */
+  --neutral-light: #F2F2F2;       /* Fondo claro */
+}
+
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--neutral-light);
+}
+
+/* Colores personalizados */
+.bg-forest {
+  background-color: var(--forest-green) !important;
+}
+
+.text-forest {
+  color: var(--forest-green) !important;
+}
+
+.btn-forest {
+  background-color: var(--forest-green);
+  border-color: var(--forest-green);
+  color: white;
+}
+
+.btn-forest:hover {
+  background-color: var(--forest-green-dark);
+  border-color: var(--forest-green-dark);
+  color: white;
+}
+
+.btn-outline-forest {
+  border-color: var(--forest-green);
+  color: var(--forest-green);
+}
+
+.btn-outline-forest:hover {
+  background-color: var(--forest-green);
+  border-color: var(--forest-green);
+  color: white;
+}
+
+/* Navbar */
+.navbar-dark .navbar-nav .nav-link {
+  color: rgba(255, 255, 255, 0.85);
+  transition: all 0.3s;
+}
+
+.navbar-dark .navbar-nav .nav-link:hover {
+  color: white;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+}
+
+.navbar-dark .navbar-nav .nav-link.active {
+  color: white;
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 5px;
+}
+
+/* Cards */
+.card {
+  transition: transform 0.2s, box-shadow 0.2s;
+  background-color: white;
+  color: var(--neutral-dark);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Tables */
+.table thead th {
+  background-color: var(--forest-green);
+  color: white;
+  border: none;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+}
+
+.table tbody tr {
+  transition: background-color 0.2s;
+}
+
+.table tbody tr:hover {
+  background-color: rgba(91, 166, 110, 0.08);
+}
+
+/* Badges */
+.badge {
+  padding: 0.4em 0.8em;
+  font-weight: 500;
+}
+
+/* Login Page */
+.login-container {
+  background: linear-gradient(
+    135deg,
+    var(--forest-green) 0%,
+    var(--forest-green-light) 100%
+  );
+  min-height: 100vh;
+}
+
+.login-container .card {
+  border-radius: 15px;
+}
+
+/* Forms */
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--forest-green);
+  box-shadow: 0 0 0 0.2rem rgba(91, 166, 110, 0.25);
+}
+
+.input-group-text {
+  border-color: var(--forest-green);
+}
+
+/* Modals */
+.modal-header.bg-forest {
+  border-top-left-radius: calc(0.5rem - 1px);
+  border-top-right-radius: calc(0.5rem - 1px);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .navbar-brand span {
+    font-size: 0.9rem;
+  }
+
+  .table {
+    font-size: 0.85rem;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #e5e5e5;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--forest-green);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--forest-green-dark);
+}
+
+/* Alerts */
+.alert {
+  border-radius: 10px;
+  border: none;
+}
+
+/* Buttons */
+.btn {
+  border-radius: 8px;
+  padding: 0.5rem 1.2rem;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Footer */
+footer {
+  margin-top: auto;
+}

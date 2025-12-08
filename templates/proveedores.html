@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Proveedores - Maderería San José{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-forest"><i class="bi bi-truck me-2"></i>Gestión de Proveedores</h2>
+        <button class="btn btn-forest" data-bs-toggle="modal" data-bs-target="#modalNuevoProveedor">
+            <i class="bi bi-plus-circle me-2"></i>Nuevo Proveedor
+        </button>
+    </div>
+
+    <!-- Buscador -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="input-group">
+                <span class="input-group-text bg-forest text-white">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input type="text" class="form-control" id="buscarProveedor" 
+                       placeholder="Buscar proveedor..." 
+                       onkeyup="filtrarTabla('buscarProveedor', 'tablaProveedores')">
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Proveedores -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="tablaProveedores">
+                    <thead>
+                        <tr>
+                            <th hidden>ID</th>
+                            <th>Nombre</th>
+                            <th>Contacto</th>
+                            <th>Teléfono</th>
+                            <th>Email</th>
+                            <th>Dirección</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for proveedor in proveedores %}
+                        <tr>
+                            <td hidden>{{ proveedor.id }}</td>
+                            <td><strong>{{ proveedor.nombre }}</strong></td>
+                            <td>{{ proveedor.contacto or '-' }}</td>
+                            <td>{{ proveedor.telefono or '-' }}</td>
+                            <td>{{ proveedor.email or '-' }}</td>
+                            <td>{{ proveedor.direccion or '-' }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" 
+                                        onclick="editarProveedor({{ proveedor.id }}, '{{ proveedor.nombre }}', '{{ proveedor.contacto or '' }}', '{{ proveedor.telefono or '' }}', '{{ proveedor.email or '' }}', '{{ proveedor.direccion or '' }}')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <a href="{{ url_for('eliminar_proveedor', id=proveedor.id) }}" 
+                                   class="btn btn-sm btn-outline-danger"
+                                   onclick="return confirmarEliminacion('¿Eliminar el proveedor {{ proveedor.nombre }}?')">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nuevo Proveedor -->
+<div class="modal fade" id="modalNuevoProveedor" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-forest text-white">
+                <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Nuevo Proveedor</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('crear_proveedor') }}">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="nombre" class="form-label">Nombre *</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="contacto" class="form-label">Persona de Contacto</label>
+                            <input type="text" class="form-control" id="contacto" name="contacto">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="telefono" class="form-label">Teléfono</label>
+                            <input type="tel" class="form-control" id="telefono" name="telefono">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="direccion" class="form-label">Dirección</label>
+                        <textarea class="form-control" id="direccion" name="direccion" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-forest">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Proveedor -->
+<div class="modal fade" id="modalEditarProveedor" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-forest text-white">
+                <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Editar Proveedor</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" id="formEditarProveedor">
+                <div class="modal-body">
+                    <input type="hidden" id="edit_proveedor_id" name="proveedor_id">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_nombre" class="form-label">Nombre *</label>
+                            <input type="text" class="form-control" id="edit_nombre" name="nombre" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_contacto" class="form-label">Persona de Contacto</label>
+                            <input type="text" class="form-control" id="edit_contacto" name="contacto">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_telefono" class="form-label">Teléfono</label>
+                            <input type="tel" class="form-control" id="edit_telefono" name="telefono">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="edit_email" name="email">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_direccion" class="form-label">Dirección</label>
+                        <textarea class="form-control" id="edit_direccion" name="direccion" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-forest">Actualizar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function editarProveedor(id, nombre, contacto, telefono, email, direccion) {
+    document.getElementById('edit_proveedor_id').value = id;
+    document.getElementById('edit_nombre').value = nombre;
+    document.getElementById('edit_contacto').value = contacto;
+    document.getElementById('edit_telefono').value = telefono;
+    document.getElementById('edit_email').value = email;
+    document.getElementById('edit_direccion').value = direccion;
+    document.getElementById('formEditarProveedor').action = `/proveedores/editar/${id}`;
+    
+    const modal = new bootstrap.Modal(document.getElementById('modalEditarProveedor'));
+    modal.show();
+}
+</script>
+{% endblock %}

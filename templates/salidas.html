@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Salidas - Maderería San José{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-forest"><i class="bi bi-box-arrow-up me-2"></i>Salidas de Inventario</h2>
+        <button class="btn btn-forest" data-bs-toggle="modal" data-bs-target="#modalNuevaSalida">
+            <i class="bi bi-plus-circle me-2"></i>Registrar Salida
+        </button>
+    </div>
+
+    <!-- Tabla de Salidas -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th hidden>ID</th>
+                            <th>Fecha</th>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Precio Unitario</th>
+                            <th>Total</th>
+                            <th>Usuario</th>
+                            <th>Notas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for salida in salidas %}
+                        <tr>
+                            <td hidden>{{ salida.id }}</td>
+                            <td>{{ salida.fecha.strftime('%d/%m/%Y %H:%M') }}</td>
+                            <td><strong>{{ salida.producto_nombre }}</strong></td>
+                            <td><span class="badge bg-danger">{{ salida.cantidad }}</span></td>
+                            <td>${{ "%.2f"|format(salida.precio_unitario or 0) }}</td>
+                            <td><strong>${{ "%.2f"|format(salida.cantidad * (salida.precio_unitario or 0)) }}</strong></td>
+                            <td>{{ salida.usuario_nombre }}</td>
+                            <td>{{ salida.notas or '-' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if not salidas %}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                    <p class="mt-2">No hay salidas registradas.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nueva Salida -->
+<div class="modal fade" id="modalNuevaSalida" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-forest text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-plus-circle me-2"></i>Registrar Salida de Inventario
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <form method="POST" action="{{ url_for('crear_salida') }}">
+        <div class="modal-body">
+          <!-- Selección de producto -->
+          <div class="mb-3">
+            <label for="producto_id" class="form-label">Producto *</label>
+            <select class="form-select" id="producto_id" name="producto_id" required>
+              <option value="">Seleccione un producto</option>
+              {% for producto in productos %}
+              <option value="{{ producto.id }}"
+                      data-stock="{{ producto.stock_actual }}"
+                      data-precio="{{ producto.precio_venta }}">
+                {{ producto.codigo }} - {{ producto.nombre }} (Stock: {{ producto.stock_actual }})
+              </option>
+              {% endfor %}
+            </select>
+            <small id="stockInfo" class="form-text text-muted"></small>
+          </div>
+
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label for="cantidad" class="form-label">Cantidad *</label>
+              <input type="number" class="form-control" id="cantidad" name="cantidad" min="1" required disabled>
+            </div>
+
+            <div class="col-md-4 mb-3">
+              <label for="precio_unitario" class="form-label">Precio Unitario</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="number" class="form-control" id="precio_unitario"
+                       name="precio_unitario" step="0.01" min="0" readonly>
+              </div>
+            </div>
+
+            <div class="col-md-4 mb-3">
+              <label for="total" class="form-label">Total</label>
+              <input type="text" class="form-control" id="total" readonly>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="notas" class="form-label">Notas</label>
+            <textarea class="form-control" id="notas" name="notas" rows="3"
+                      placeholder="Información adicional sobre la salida..." disabled></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" id="btnRegistrar" class="btn btn-forest" disabled>Registrar Salida</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Script dinámico -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const productoSelect = document.getElementById('producto_id');
+    const cantidadInput = document.getElementById('cantidad');
+    const precioInput = document.getElementById('precio_unitario');
+    const totalInput = document.getElementById('total');
+    const notasInput = document.getElementById('notas');
+    const btnRegistrar = document.getElementById('btnRegistrar');
+    const stockInfo = document.getElementById('stockInfo');
+
+    productoSelect.addEventListener('change', () => {
+        const option = productoSelect.options[productoSelect.selectedIndex];
+        const stock = parseInt(option.getAttribute('data-stock')) || 0;
+        const precio = parseFloat(option.getAttribute('data-precio')) || 0;
+
+        if (!productoSelect.value) {
+            stockInfo.textContent = '';
+            cantidadInput.value = '';
+            precioInput.value = '';
+            totalInput.value = '';
+            cantidadInput.disabled = true;
+            notasInput.disabled = true;
+            btnRegistrar.disabled = true;
+            return;
+        }
+
+        stockInfo.textContent = `Stock disponible: ${stock} unidades`;
+        precioInput.value = precio.toFixed(2);
+
+        if (stock <= 0) {
+            stockInfo.textContent = '⚠️ Sin stock disponible para este producto.';
+            cantidadInput.disabled = true;
+            notasInput.disabled = true;
+            btnRegistrar.disabled = true;
+            return;
+        }
+
+        cantidadInput.disabled = false;
+        notasInput.disabled = false;
+        btnRegistrar.disabled = false;
+    });
+
+    cantidadInput.addEventListener('input', () => {
+        const option = productoSelect.options[productoSelect.selectedIndex];
+        const stock = parseInt(option.getAttribute('data-stock')) || 0;
+        const precio = parseFloat(precioInput.value) || 0;
+        const cantidad = parseInt(cantidadInput.value) || 0;
+
+        if (cantidad > stock) {
+            stockInfo.textContent = `⚠️ No hay suficiente stock (máximo ${stock} unidades).`;
+            btnRegistrar.disabled = true;
+        } else {
+            stockInfo.textContent = `Stock disponible: ${stock - cantidad} restante(s).`;
+            btnRegistrar.disabled = false;
+        }
+
+        totalInput.value = (cantidad * precio).toFixed(2);
+    });
+});
+</script>
+{% endblock %}

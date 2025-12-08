@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Movimientos - Maderería San José{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <h2 class="text-forest mb-4"><i class="bi bi-arrow-left-right me-2"></i>Historial de Movimientos</h2>
+
+    <!-- Filtros -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('movimientos') }}">
+                <div class="row align-items-end">
+                    <!-- Filtro Tipo -->
+                    <div class="col-md-3 mb-3">
+                        <label for="tipo" class="form-label">Tipo</label>
+                        <select class="form-select" id="tipo" name="tipo">
+                            <option value="">Todos</option>
+                            <option value="entrada" {% if request.args.get('tipo') == 'entrada' %}selected{% endif %}>Entradas</option>
+                            <option value="salida" {% if request.args.get('tipo') == 'salida' %}selected{% endif %}>Salidas</option>
+                        </select>
+                    </div>
+
+                    <!-- Filtros de Fecha (solo admin) -->
+                    {% if session.rol == 'administrador' %}
+                    <div class="col-md-3 mb-3">
+                        <label for="fecha_inicio" class="form-label">Fecha Inicio</label>
+                        <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio"
+                            value="{{ request.args.get('fecha_inicio', '') }}">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="fecha_fin" class="form-label">Fecha Fin</label>
+                        <input type="date" class="form-control" id="fecha_fin" name="fecha_fin"
+                            value="{{ request.args.get('fecha_fin', '') }}">
+                    </div>
+                    {% endif %}
+
+                    <!-- Botones -->
+                    <div class="col-md-3 d-flex gap-2 mb-3">
+                        <button type="submit" class="btn btn-forest flex-fill">
+                            <i class="bi bi-funnel me-2"></i>Filtrar
+                        </button>
+                        <a href="{{ url_for('movimientos', tipo=request.args.get('tipo'), fecha_inicio=request.args.get('fecha_inicio'), fecha_fin=request.args.get('fecha_fin'), exportar='pdf') }}"
+                           class="btn btn-outline-danger flex-fill">
+                            <i class="bi bi-file-earmark-pdf me-2"></i>PDF
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabla de Movimientos -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th hidden>ID</th>
+                            <th>Tipo</th>
+                            <th>Fecha</th>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            {% if session.rol == 'administrador' %}
+                            <th>Costo/Precio</th>
+                            <th>Total</th>
+                            {% endif %}
+                            <th>Proveedor</th>
+                            <th>Usuario</th>
+                            <th>Notas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mov in movimientos %}
+                        <tr>
+                            <td hidden>{{ mov.id }}</td>
+                            <td>
+                                {% if mov.tipo == 'entrada' %}
+                                <span class="badge bg-success">Entrada</span>
+                                {% else %}
+                                <span class="badge bg-danger">Salida</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ mov.fecha.strftime('%d/%m/%Y %H:%M') }}</td>
+                            <td>
+                                <strong>{{ mov.producto_nombre }}</strong><br>
+                                <small class="text-muted">{{ mov.producto_codigo }}</small>
+                            </td>
+                            <td>{{ mov.cantidad }}</td>
+                            {% if session.rol == 'administrador' %}
+                            <td>
+                                {% if mov.tipo == 'entrada' %}
+                                ${{ "%.2f"|format(mov.costo_unitario or 0) }}
+                                {% else %}
+                                ${{ "%.2f"|format(mov.precio_unitario or 0) }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong>
+                                {% if mov.tipo == 'entrada' %}
+                                ${{ "%.2f"|format(mov.cantidad * (mov.costo_unitario or 0)) }}
+                                {% else %}
+                                ${{ "%.2f"|format(mov.cantidad * (mov.precio_unitario or 0)) }}
+                                {% endif %}
+                                </strong>
+                            </td>
+                            {% endif %}
+                            <td>{{ mov.proveedor_nombre or '-' }}</td>
+                            <td>{{ mov.usuario_nombre }}</td>
+                            <td>{{ mov.notas or '-' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                {% if not movimientos %}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                    <p class="mt-2">No hay movimientos registrados.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

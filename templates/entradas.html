@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block title %}Entradas - Maderería San José{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-forest"><i class="bi bi-box-arrow-in-down me-2"></i>Entradas de Inventario</h2>
+
+        {% if session.rol == 'administrador' or session.rol == 'empleado' %}
+        <button class="btn btn-forest" data-bs-toggle="modal" data-bs-target="#modalNuevaEntrada">
+            <i class="bi bi-plus-circle me-2"></i>Registrar Entrada
+        </button>
+        {% endif %}
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th hidden>ID</th>
+                            <th>Fecha</th>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            {% if session.rol == 'administrador' %}
+                                <th>Costo Unitario</th>
+                                <th>Total</th>
+                            {% endif %}
+                            <th>Proveedor</th>
+                            {% if session.rol == 'administrador' %}
+                                <th>Usuario</th>
+                            {% endif %}
+                            <th>Notas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entrada in entradas %}
+                        <tr>
+                            <td hidden>{{ entrada.id }}</td>
+                            <td>{{ entrada.fecha.strftime('%d/%m/%Y %H:%M') }}</td>
+                            <td><strong>{{ entrada.producto_nombre }}</strong></td>
+                            <td><span class="badge bg-success">{{ entrada.cantidad }}</span></td>
+                            {% if session.rol == 'administrador' %}
+                                <td>${{ "%.2f"|format(entrada.costo_unitario) }}</td>
+                                <td><strong>${{ "%.2f"|format(entrada.cantidad * entrada.costo_unitario) }}</strong></td>
+                            {% endif %}
+                            <td>{{ entrada.proveedor_nombre or '-' }}</td>
+                            {% if session.rol == 'administrador' %}
+                                <td>{{ entrada.usuario_nombre }}</td>
+                            {% endif %}
+                            <td>{{ entrada.notas or '-' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                {% if not entradas %}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                    <p class="mt-2">No hay entradas registradas.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nueva Entrada -->
+{% if session.rol == 'administrador' or session.rol == 'empleado' %}
+<div class="modal fade" id="modalNuevaEntrada" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-forest text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-plus-circle me-2"></i>Registrar Entrada de Inventario
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form method="POST" action="{{ url_for('crear_entrada') }}">
+                <div class="modal-body">
+                    <div class="row">
+                        <!-- Producto -->
+                        <div class="col-md-6 mb-3">
+                            <label for="producto_id" class="form-label">Producto *</label>
+                            <select class="form-select" id="producto_id" name="producto_id" required>
+                                <option value="">Seleccione un producto</option>
+                                {% for producto in productos %}
+                                <option value="{{ producto.id }}">{{ producto.codigo }} - {{ producto.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Proveedor (solo admin) -->
+                        {% if session.rol == 'administrador' %}
+                        <div class="col-md-6 mb-3">
+                            <label for="proveedor_id" class="form-label">Proveedor *</label>
+                            <select class="form-select" id="proveedor_id" name="proveedor_id" required>
+                                <option value="">Seleccione un proveedor</option>
+                                {% for proveedor in proveedores %}
+                                <option value="{{ proveedor.id }}">{{ proveedor.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row">
+                        <!-- Cantidad -->
+                        <div class="col-md-6 mb-3">
+                            <label for="cantidad" class="form-label">Cantidad *</label>
+                            <input type="number"
+                                   class="form-control"
+                                   id="cantidad"
+                                   name="cantidad"
+                                   step="1"
+                                   min="1"
+                                   required>
+                        </div>
+
+                        <!-- Costo Unitario (solo admin) -->
+                        {% if session.rol == 'administrador' %}
+                        <div class="col-md-6 mb-3">
+                            <label for="costo_unitario" class="form-label">Costo Unitario *</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number"
+                                       class="form-control"
+                                       id="costo_unitario"
+                                       name="costo_unitario"
+                                       step="0.01"
+                                       min="1"
+                                       required>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Notas -->
+                    <div class="mb-3">
+                        <label for="notas" class="form-label">Notas</label>
+                        <textarea class="form-control"
+                                  id="notas"
+                                  name="notas"
+                                  rows="3"
+                                  placeholder="Información adicional..."></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-forest">Registrar Entrada</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
