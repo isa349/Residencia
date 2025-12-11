@@ -15,8 +15,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from collections import Counter
-import psycopg2
-import psycopg2.extras
+import psycopg
 import os
 
 app = Flask(__name__)
@@ -32,7 +31,7 @@ def get_db():
     """Devuelve una conexión a la DB. Recuerda cerrar conn/cur después."""
     if not DATABASE_URL:
         raise RuntimeError("DATABASE_URL no está definida")
-    conn = psycopg2.connect(DATABASE_URL)
+    conn = psycopg.connect(DATABASE_URL)
     return conn
 
 # ------------ Decoradores ------------
