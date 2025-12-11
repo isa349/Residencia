@@ -393,13 +393,6 @@ def proveedores():
         conn.close()
     return render_template('proveedores.html', proveedores=proveedores)
 
-@app.route('/proveedores/crear', methods=['POST'])
-@admin_required
-def crear_proveedor():
-    nombre = request.form['nombre']
-    contacto = request.form['contacto']
-    telefono = request.form['telefono']
-    email = request.form['email']
 
 # ==================== PROVEEDORES (continuación) ====================
 @app.route('/proveedores/crear', methods=['POST'])
